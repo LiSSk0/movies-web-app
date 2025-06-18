@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, Date, Float
+from sqlalchemy import Column, String, Integer, Date, Float, ForeignKey
 from sqlalchemy.orm import declarative_base
 
 # Base class for models
@@ -39,11 +39,11 @@ class Movie(Base):
 class Rate(Base):
     __tablename__ = 'rates'
 
-    user_id = Column(Integer, foreign_key=True, nullable=False)
-    movie_id = Column(Integer, foreign_key=True, nullable=False)
+    user_email = Column(String, ForeignKey('users.email'), primary_key=True, nullable=False)
+    movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True, nullable=False)
     rate = Column(Float, nullable=False)
 
-    def __init__(self, user_id, movie_id, rate):
-        self.user_id = user_id
+    def __init__(self, user_email, movie_id, rate):
+        self.user_email = user_email
         self.movie_id = movie_id
         self.rate = rate

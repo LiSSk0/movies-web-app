@@ -1,6 +1,6 @@
 # import sqlalchemy
 from sqlalchemy.orm import Session
-from sqlalchemy import orm, create_engine, MetaData, Table, Column, String, Date, Integer, Float
+from sqlalchemy import orm, create_engine, MetaData, Table, Column, String, ForeignKey, Integer, Float
 import psycopg2
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 from .models import User, Movie, Rate
@@ -28,7 +28,11 @@ class DataBase:
         # Creating engine and connection
         # default: echo=False, pool_size=5, max_overflow=10, encoding='UTF-8'
         connection_link = "postgresql+psycopg2://" + user + ":" + password + "@localhost/" + db_name
-        engine = create_engine(connection_link)
+        try:
+            engine = create_engine(connection_link)
+        except Exception as e:
+            print("# Error: Wrong DB credentials:", e)
+            raise
         metadata = MetaData()
 
         # Creating users table
@@ -46,10 +50,44 @@ class DataBase:
 
         # Creating rates table
         self.rates_table = Table('rates', metadata,
-                                 Column('user_id', Integer, foreign_key=True, nullable=False),
-                                 Column('movie_id', Integer, foreign_key=True, nullable=False),
+                                 Column('user_id', Integer, ForeignKey('users.email'), primary_key=True, nullable=False),
+                                 Column('movie_id', Integer, ForeignKey('movies.id'), primary_key=True, nullable=False),
                                  Column('rate', Float, nullable=False))
 
         # Initializing tables
         metadata.create_all(engine)
         self.engine = engine
+
+    # Adding new user to 'users'
+    def add_user(self, email, password, nickname):
+        new_user = User(
+            email=email,
+            password=password,
+            nickname=nickname
+        )
+        with Session(self.engine) as session:
+            session.add(new_user)
+            session.commit()
+
+    # Adding new rate to 'rates'
+    def add_rate(self, email, movie_id, rate):
+        new_rate = Rate(
+            user_email=email,
+            movie_id=movie_id,
+            rate=rate
+        )
+        with Session(self.engine) as session:
+            session.add(new_rate)
+            session.commit()
+
+    # Adding new movie to 'movies'
+    def add_movie(self, movie_id, name, year, genre):
+        new_movie = Movie(
+            id=movie_id,
+            name=name,
+            year=year,
+            genre=genre
+        )
+        with Session(self.engine) as session:
+            session.add(new_movie)
+            session.commit()
