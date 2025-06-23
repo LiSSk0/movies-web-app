@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Recommendations</title>
+</head>
+<body>
+    <h1>Recommended movies</h1>
+
+    <form method="post" action="/">
+        <label for="email">Enter your email:</label>
+        <input type="email" name="email" id="email" required>
+        <button type="submit">Show</button>
+    </form>
+
+    {% if recommendations %}
+        <ul>
+            {% for movie in recommendations %}
+                <li>{{ movie.name }} — {{ movie.rating }}</li>
+            {% endfor %}
+        </ul>
+    {% elif no_user %}
+        <p>User is not found :(</p>
+    {% endif %}
+</body>
+</html>
