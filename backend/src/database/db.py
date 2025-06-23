@@ -50,7 +50,7 @@ class DataBase:
 
         # Creating rates table
         self.rates_table = Table('rates', metadata,
-                                 Column('user_id', Integer, ForeignKey('users.email'), primary_key=True, nullable=False),
+                                 Column('user_email', String, ForeignKey('users.email'), primary_key=True, nullable=False),
                                  Column('movie_id', Integer, ForeignKey('movies.id'), primary_key=True, nullable=False),
                                  Column('rate', Float, nullable=False))
 
