@@ -16,8 +16,8 @@ class DataBase:
             session.commit()
 
     # Adding new movie to the DB
-    def add_movie(self, movie_id, name, year, genre, description):
-        new_movie = Movie(id=movie_id, name=name, year=year, genre=genre, description=description)
+    def add_movie(self, name, year, genre, description):
+        new_movie = Movie(name=name, year=year, genre=genre, description=description)  # "id" is autoincrement
         with Session(self.engine) as session:
             session.add(new_movie)
             session.commit()
@@ -29,19 +29,22 @@ class DataBase:
             session.add(new_rate)
             session.commit()
 
-    # Adding new movies through the CSV (Excel)
+    # Adding new movies using the txt-file
     def insert_movies(self, filepath):
-        import csv
         with open(filepath, encoding='utf-8') as f:
-            reader = csv.DictReader(f)  # file contains the heading
-            with Session(self.engine) as session:
-                for row in reader:
-                    movie = Movie(
-                        id=int(row['id']),
-                        name=row['name'],
-                        year=int(row['year']),
-                        genre=row['genre'],
-                        description=row.get('description', '')  # if no description
+            for line in f:
+                parts = line.strip().split(',', 3)  # split by first 3 commas (to 4 parts)
+                if len(parts) != 4:
+                    continue  # skipping if bad data
+
+                name, year, genre, description = parts
+                try:
+                    self.add_movie(
+                        name=name,
+                        year=int(year),
+                        genre=genre,
+                        description=description
                     )
-                    session.add(movie)
-                session.commit()
+                except Exception as e:
+                    print(f'Error adding the "{name}": {e}')
+

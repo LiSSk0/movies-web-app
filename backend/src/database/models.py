@@ -29,8 +29,7 @@ class Movie(Base):
     genre = Column(String, nullable=False)
     description = Column(String, nullable=False)
 
-    def __init__(self, id, name, year, genre, description):
-        self.id = id
+    def __init__(self, name, year, genre, description):
         self.name = name
         self.year = year
         self.genre = genre
