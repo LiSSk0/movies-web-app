@@ -27,12 +27,14 @@ class Movie(Base):
     name = Column(String, nullable=False)
     year = Column(Integer, nullable=False)
     genre = Column(String, nullable=False)
+    description = Column(String, nullable=False)
 
-    def __init__(self, id, name, year, genre):
+    def __init__(self, id, name, year, genre, description):
         self.id = id
         self.name = name
         self.year = year
         self.genre = genre
+        self.description = description
 
 
 # Model for rates table
