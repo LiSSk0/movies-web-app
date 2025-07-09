@@ -5,7 +5,7 @@ from .routes import register_routes
 
 def create_app(db):
     app = Flask(__name__)
-    CORS(app)  # allows access from frontend (React)
+    CORS(app)  # allows access from frontend
 
     app.db = db
 
