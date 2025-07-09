@@ -48,6 +48,11 @@ def register_routes(app):
 
     @app.route("/movies", methods=["GET"])
     def movies():
+        email = request.args.get("email")
+        if not email or not app.db.get_user_by_email(email):
+            # If the email isn't correct - redirecting on index page
+            return redirect(url_for("index"))
+
         page = request.args.get('page', default=1, type=int)
         query = request.args.get('q', default="", type=str).strip()
         per_page = 100
@@ -61,7 +66,7 @@ def register_routes(app):
 
         hasNext = len(next_movies) > 0
 
-        return render_template("movies.html", movies=movies100, page=page, hasNext=hasNext, query=query)
+        return render_template("movies.html", movies=movies100, page=page, hasNext=hasNext, query=query, email=email)
 
     @app.route("/recommendations", methods=["POST"])
     def recommendations():

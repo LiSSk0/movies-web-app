@@ -27,6 +27,7 @@
 
     <!-- Search -->
     <form method="get" action="/movies">
+        <input type="hidden" name="email" value="{{ email }}">
         <input type="text" name="q" placeholder="Search by name..." value="{{ query }}">
         <button type="submit">Search</button>
     </form>
@@ -40,7 +41,7 @@
 
         <!-- Rate btn -->
         <form method="post" action="/add_rate" class="inline">
-            <input type="hidden" name="email" value="lissk0@mail.ru">
+            <input type="hidden" name="email" value="{{ email }}">
             <input type="hidden" name="movie_id" value="{{ movie.id }}">
             <label>Rate (0–10):</label>
             <input type="number" name="rate" min="0" max="10" step="1" required>
@@ -49,15 +50,16 @@
     </div>
     {% endfor %}
 
-    <!-- Btn "Upload more" -->
+    <!-- Btn "Next page" -->
     <div class="load-more">
         {% if hasNext %}
             <form method="get" action="/movies">
+                <input type="hidden" name="email" value="{{ email }}">
                 <input type="hidden" name="page" value="{{ page + 1 }}">
                 {% if query %}
                     <input type="hidden" name="q" value="{{ query }}">
                 {% endif %}
-                <button type="submit" class="button">Upload more...</button>
+                <button type="submit" class="button">Next page</button>
             </form>
         {% else %}
             <p>No more movies.</p>
