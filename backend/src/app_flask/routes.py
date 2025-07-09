@@ -46,6 +46,23 @@ def register_routes(app):
         app.db.add_rate(email, movie_id, rate)
         return redirect(url_for('profile', email=email))
 
+    @app.route("/movies", methods=["GET"])
+    def movies():
+        page = request.args.get('page', default=1, type=int)
+        query = request.args.get('q', default="", type=str).strip()
+        per_page = 100
+
+        if query:
+            movies100 = app.db.search_movies_by_name(query, page, per_page)
+            next_movies = app.db.search_movies_by_name(query, page + 1, per_page)
+        else:
+            movies100 = app.db.get_movies_page(page, per_page)
+            next_movies = app.db.get_movies_page(page + 1, per_page)
+
+        hasNext = len(next_movies) > 0
+
+        return render_template("movies.html", movies=movies100, page=page, hasNext=hasNext, query=query)
+
     @app.route("/recommendations", methods=["POST"])
     def recommendations():
         email = request.form.get("email")

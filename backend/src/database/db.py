@@ -36,9 +36,20 @@ class DataBase:
 
     # Getting (100) movies for (1) page
     def get_movies_page(self, page=1, per_page=100):
-        offset = (page - 1) * per_page
+        # Checking the validity
+        if page < 1 or per_page < 1:
+            return []
+
+        offset = (page - 1) * per_page  # skipping movies before current page
         with Session(self.engine) as session:
             movies = session.query(Movie).order_by(Movie.id).offset(offset).limit(per_page).all()
+            return movies
+
+    # Searching movies by name
+    def search_movies_by_name(self, name, page, per_page):
+        with Session(self.engine) as session:
+            offset = (page - 1) * per_page  # skipping movies before current page
+            movies = session.query(Movie).filter(Movie.name.ilike(f"%{name}%")).offset(offset).limit(per_page).all()
             return movies
 
     # Adding new movies using the csv-file
