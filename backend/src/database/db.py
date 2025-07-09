@@ -28,10 +28,14 @@ class DataBase:
             # Checking if rate already exists
             existing = session.query(Rate).filter_by(email=email, movie_id=movie_id).first()
             if existing:
-                existing.rate = rate  # Updating the rate
+                if rate is None or rate == 0:
+                    session.delete(existing)  # Delete rate from DB
+                else:
+                    existing.rate = rate  # Updating the rate
             else:
-                new_rate = Rate(email=email, movie_id=movie_id, rate=rate)
-                session.add(new_rate)
+                if rate is not None and rate != 0:
+                    new_rate = Rate(email=email, movie_id=movie_id, rate=rate)
+                    session.add(new_rate)
             session.commit()
 
     # Getting the user by email
@@ -54,6 +58,14 @@ class DataBase:
     def get_user_ratings(self, email):
         with Session(self.engine) as session:
             return session.query(Rate).filter_by(email=email).all()
+
+    # Getting user's rates
+    def get_user_rated_movies(self, email):
+        with Session(self.engine) as session:
+            result = (
+                session.query(Movie.name, Rate.rate).join(Rate, Movie.id == Rate.movie_id).filter(Rate.email == email).all()
+            )
+            return [{"name": name, "rating": rate} for name, rate in result]
 
     # Searching movies by name
     def search_movies_by_name(self, name, page, per_page):

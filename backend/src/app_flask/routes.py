@@ -32,19 +32,12 @@ def register_routes(app):
         email = request.args.get("email")
         user = app.db.get_user_by_email(email)
 
-        if not user:
+        if not email or not user:
             return "Error: User not found", 404
 
-        return render_template("profile.html", user=user, email=email)
+        rated_movies = app.db.get_user_rated_movies(email)
 
-    # @app.route("/add_rate", methods=["POST"])
-    # def add_rate():
-    #     email = request.form.get("email")
-    #     movie_id = int(request.form.get("movie_id"))
-    #     rate = float(request.form.get("rate"))
-    #
-    #     app.db.add_rate(email, movie_id, rate)
-    #     return redirect(url_for('profile', email=email))
+        return render_template("profile.html", user=user, email=email, rated_movies=rated_movies)
 
     @app.route("/movies", methods=["GET"])
     def movies():
@@ -89,14 +82,14 @@ def register_routes(app):
         movie_id = request.form.get("movie_id", type=int)
         rate = request.form.get("rate", type=float)
 
-        # Check validity
-        if not email or movie_id is None or rate is None:
+        # Check validity: email and movie_id are required
+        if not email or movie_id is None:
             return "Error: Invalid data", 400
 
-        # Adding rating to DB
+        # Updating rate (add/change/delete) в БД
         app.db.add_rate(email=email, movie_id=movie_id, rate=rate)
 
-        # Redirecting back to the movies page, saving the params
+        # Redirect back to movies with params
         page = request.args.get("page", 1)
         query = request.args.get("q", "")
         return redirect(url_for("movies", email=email, page=page, q=query))

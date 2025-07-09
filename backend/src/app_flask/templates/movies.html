@@ -25,6 +25,12 @@
 <body>
     <h1>All movies — page #{{ page }}</h1>
 
+    <!-- Back to Profile -->
+    <form method="get" action="/profile">
+        <input type="hidden" name="email" value="{{ email }}">
+        <button type="submit" class="button">← Back to Profile</button>
+    </form>
+
     <!-- Search -->
     <form method="get" action="/movies">
         <input type="hidden" name="email" value="{{ email }}">
