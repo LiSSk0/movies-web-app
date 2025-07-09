@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+</head>
+<body>
+    <h1>Welcome, {{ email }}</h1>
+
+    <h2>My rated movies</h2>
+    {% if rated_movies %}
+        <ul>
+            {% for movie in rated_movies %}
+                <li>{{ movie.name }} — {{ movie.rating }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't rated any movies yet.</p>
+    {% endif %}
+
+    <h2>Add new rate</h2>
+    <form method="post" action="/add_rate">
+        <input type="hidden" name="email" value="{{ email }}">
+        <label for="movie_id">Movie ID:</label>
+        <input type="number" name="movie_id" required>
+        <label for="rate">Rating (0–10):</label>
+        <input type="number" name="rate" min="0" max="10" step="0.1" required>
+        <button type="submit">Add</button>
+    </form>
+
+    <h2>Get movie recommendations</h2>
+    <form method="post" action="/recommendations">
+        <input type="hidden" name="email" value="{{ email }}">
+        <button type="submit">Show Recommendations</button>
+    </form>
+</body>
+</html>

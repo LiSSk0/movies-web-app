@@ -10,13 +10,9 @@ class User(Base):
     __tablename__ = 'users'
 
     email = Column(String, primary_key=True, nullable=False)
-    password = Column(String, nullable=False)
-    nickname = Column(String, nullable=False)
 
-    def __init__(self, email, password, nickname):
+    def __init__(self, email):
         self.email = email
-        self.password = password
-        self.nickname = nickname
 
 
 # Model for movies table
