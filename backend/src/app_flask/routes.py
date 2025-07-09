@@ -33,18 +33,18 @@ def register_routes(app):
         user = app.db.get_user_by_email(email)
 
         if not user:
-            return "User not found", 404
+            return "Error: User not found", 404
 
         return render_template("profile.html", user=user, email=email)
 
-    @app.route("/add_rate", methods=["POST"])
-    def add_rate():
-        email = request.form.get("email")
-        movie_id = int(request.form.get("movie_id"))
-        rate = float(request.form.get("rate"))
-
-        app.db.add_rate(email, movie_id, rate)
-        return redirect(url_for('profile', email=email))
+    # @app.route("/add_rate", methods=["POST"])
+    # def add_rate():
+    #     email = request.form.get("email")
+    #     movie_id = int(request.form.get("movie_id"))
+    #     rate = float(request.form.get("rate"))
+    #
+    #     app.db.add_rate(email, movie_id, rate)
+    #     return redirect(url_for('profile', email=email))
 
     @app.route("/movies", methods=["GET"])
     def movies():
@@ -66,7 +66,40 @@ def register_routes(app):
 
         hasNext = len(next_movies) > 0
 
-        return render_template("movies.html", movies=movies100, page=page, hasNext=hasNext, query=query, email=email)
+        # Getting user's rates by email
+        user_ratings = app.db.get_user_ratings(email)
+        # Creating dict: key - movie ID, value - rate
+        user_rates = {}
+        for rating in user_ratings:
+            user_rates[rating.movie_id] = rating.rate
+
+        return render_template(
+            "movies.html",
+            movies=movies100,
+            page=page,
+            hasNext=hasNext,
+            query=query,
+            email=email,
+            user_rates=user_rates
+        )
+
+    @app.route("/add_rate", methods=["POST"])
+    def add_rate():
+        email = request.form.get("email")
+        movie_id = request.form.get("movie_id", type=int)
+        rate = request.form.get("rate", type=float)
+
+        # Check validity
+        if not email or movie_id is None or rate is None:
+            return "Error: Invalid data", 400
+
+        # Adding rating to DB
+        app.db.add_rate(email=email, movie_id=movie_id, rate=rate)
+
+        # Redirecting back to the movies page, saving the params
+        page = request.args.get("page", 1)
+        query = request.args.get("q", "")
+        return redirect(url_for("movies", email=email, page=page, q=query))
 
     @app.route("/recommendations", methods=["POST"])
     def recommendations():

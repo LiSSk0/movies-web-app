@@ -44,7 +44,8 @@
             <input type="hidden" name="email" value="{{ email }}">
             <input type="hidden" name="movie_id" value="{{ movie.id }}">
             <label>Rate (0–10):</label>
-            <input type="number" name="rate" min="0" max="10" step="1" required>
+            <input type="number" name="rate" min="0" max="10" step="0.1"
+                    value="{{ user_rates.get(movie.id, '') }}">
             <button type="submit" class="button">Rate</button>
         </form>
     </div>

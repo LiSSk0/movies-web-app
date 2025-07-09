@@ -24,9 +24,14 @@ class DataBase:
 
     # Adding new rate to the DB
     def add_rate(self, email, movie_id, rate):
-        new_rate = Rate(user_email=email, movie_id=movie_id, rate=rate)
         with Session(self.engine) as session:
-            session.add(new_rate)
+            # Checking if rate already exists
+            existing = session.query(Rate).filter_by(email=email, movie_id=movie_id).first()
+            if existing:
+                existing.rate = rate  # Updating the rate
+            else:
+                new_rate = Rate(email=email, movie_id=movie_id, rate=rate)
+                session.add(new_rate)
             session.commit()
 
     # Getting the user by email
@@ -44,6 +49,11 @@ class DataBase:
         with Session(self.engine) as session:
             movies = session.query(Movie).order_by(Movie.id).offset(offset).limit(per_page).all()
             return movies
+
+    # Get user's ratings
+    def get_user_ratings(self, email):
+        with Session(self.engine) as session:
+            return session.query(Rate).filter_by(email=email).all()
 
     # Searching movies by name
     def search_movies_by_name(self, name, page, per_page):

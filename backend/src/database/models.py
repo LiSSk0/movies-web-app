@@ -36,11 +36,11 @@ class Movie(Base):
 class Rate(Base):
     __tablename__ = 'rates'
 
-    user_email = Column(String, ForeignKey('users.email'), primary_key=True, nullable=False)
+    email = Column(String, ForeignKey('users.email'), primary_key=True, nullable=False)
     movie_id = Column(Integer, ForeignKey('movies.id'), primary_key=True, nullable=False)
     rate = Column(Float, nullable=False)
 
-    def __init__(self, user_email, movie_id, rate):
-        self.user_email = user_email
+    def __init__(self, email, movie_id, rate):
+        self.email = email
         self.movie_id = movie_id
         self.rate = rate
