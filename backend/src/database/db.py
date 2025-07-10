@@ -38,6 +38,11 @@ class DataBase:
                     session.add(new_rate)
             session.commit()
 
+    # Getting all movies
+    def get_movies(self):
+        with Session(self.engine) as session:
+            return session.query(Movie).all()
+
     # Getting the user by email
     def get_user_by_email(self, email):
         with Session(self.engine) as session:
@@ -53,6 +58,11 @@ class DataBase:
         with Session(self.engine) as session:
             movies = session.query(Movie).order_by(Movie.id).offset(offset).limit(per_page).all()
             return movies
+
+    # Getting movie by id
+    def get_movie_by_id(self, movie_id):
+        with Session(self.engine) as session:
+            return session.query(Movie).filter_by(id=movie_id).first()
 
     # Get user's ratings
     def get_user_ratings(self, email):
