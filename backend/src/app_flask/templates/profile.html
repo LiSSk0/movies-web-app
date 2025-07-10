@@ -27,9 +27,20 @@
 
     <!-- Get recommendations -->
     <h2>Get movie recommendations</h2>
-    <form method="post" action="/recommendations">
+    <form method="post" action="/profile?email={{ email }}">
         <input type="hidden" name="email" value="{{ email }}">
         <button type="submit">Show Recommendations</button>
     </form>
+
+    {% if recommendations %}
+        <h3>Recommended for you:</h3>
+        <ul>
+        {% for movie in recommendations %}
+            <li>{{ movie.name }}</li>
+        {% endfor %}
+        </ul>
+    {% elif rec_error %}
+        <p>{{ rec_error }}</p>
+    {% endif %}
 </body>
 </html>
