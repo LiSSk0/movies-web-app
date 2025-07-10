@@ -1,18 +1,11 @@
-from flask import render_template, request
 from flask import render_template, request, redirect, url_for
-
-
-# then there will be an AI call
-def get_recommendations(email, db):
-    if email == "lissk0@mail.ru":
-        return [
-            {"name": "Inception", "rating": 9.1},
-            {"name": "Dune", "rating": 8.7},
-        ]
-    return None
+from recommender_ai.model import Recommender
 
 
 def register_routes(app):
+    # Creating Recommender object
+    recommender = Recommender(app.db, "recommender_ai/movie_vectors.pkl")
+
     @app.route("/", methods=["GET", "POST"])
     def index():
         if request.method == "POST":
@@ -27,17 +20,40 @@ def register_routes(app):
 
         return render_template("index.html")
 
-    @app.route("/profile")
+    @app.route("/profile", methods=["GET", "POST"])
     def profile():
         email = request.args.get("email")
+        if not email:
+            return redirect("/")
+
         user = app.db.get_user_by_email(email)
-
-        if not email or not user:
-            return "Error: User not found", 404
-
         rated_movies = app.db.get_user_rated_movies(email)
 
-        return render_template("profile.html", user=user, email=email, rated_movies=rated_movies)
+        recommendations = None
+        rec_error = None
+
+        if request.method == "POST":
+            # Getting recommendations
+            success, recs_or_msg = recommender.user_recommendations(email, 10)
+            if success:
+                rec_ids = recs_or_msg  # list of movies' ids
+                # Getting movies from DB by id
+                recommendations = []
+                for movie_id in rec_ids:
+                    movie = app.db.get_movie_by_id(movie_id)
+                    if movie:
+                        recommendations.append(movie)
+            else:
+                rec_error = recs_or_msg
+
+        return render_template(
+            "profile.html",
+            user=user,
+            email=email,
+            rated_movies=rated_movies,
+            recommendations=recommendations,
+            rec_error=rec_error,
+        )
 
     @app.route("/movies", methods=["GET"])
     def movies():
@@ -93,10 +109,3 @@ def register_routes(app):
         page = request.args.get("page", 1)
         query = request.args.get("q", "")
         return redirect(url_for("movies", email=email, page=page, q=query))
-
-    @app.route("/recommendations", methods=["POST"])
-    def recommendations():
-        email = request.form.get("email")
-        # recs = get_recommendations(email, app.db)
-        # return render_template("index.html", recommendations=recs, no_user=not recs)
-        return None
