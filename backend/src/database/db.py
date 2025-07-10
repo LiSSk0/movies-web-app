@@ -1,0 +1,133 @@
+from sqlalchemy.orm import Session
+from sqlalchemy import create_engine
+from .models import User, Movie, Rate, Base
+
+
+class DataBase:
+    def __init__(self, db_file):
+        connection_link = f"sqlite:///{db_file}"
+        self.engine = create_engine(connection_link, echo=True)
+
+    # Adding a new user to the DB
+    def add_user(self, email):
+        new_user = User(email=email)
+        with Session(self.engine) as session:
+            session.add(new_user)
+            session.commit()
+
+    # Adding new movie to the DB
+    def add_movie(self, name, year, genre, description):
+        new_movie = Movie(name=name, year=year, genre=genre, description=description)  # "id" is autoincrement
+        with Session(self.engine) as session:
+            session.add(new_movie)
+            session.commit()
+
+    # Adding new rate to the DB
+    def add_rate(self, email, movie_id, rate):
+        with Session(self.engine) as session:
+            # Checking if rate already exists
+            existing = session.query(Rate).filter_by(email=email, movie_id=movie_id).first()
+            if existing:
+                if rate is None or rate == 0:
+                    session.delete(existing)  # Delete rate from DB
+                else:
+                    existing.rate = rate  # Updating the rate
+            else:
+                if rate is not None and rate != 0:
+                    new_rate = Rate(email=email, movie_id=movie_id, rate=rate)
+                    session.add(new_rate)
+            session.commit()
+
+    # Getting all movies
+    def get_movies(self):
+        with Session(self.engine) as session:
+            return session.query(Movie).all()
+
+    # Getting the user by email
+    def get_user_by_email(self, email):
+        with Session(self.engine) as session:
+            return session.query(User).filter_by(email=email).first()
+
+    # Getting (100) movies for (1) page
+    def get_movies_page(self, page=1, per_page=100):
+        # Checking the validity
+        if page < 1 or per_page < 1:
+            return []
+
+        offset = (page - 1) * per_page  # skipping movies before current page
+        with Session(self.engine) as session:
+            movies = session.query(Movie).order_by(Movie.id).offset(offset).limit(per_page).all()
+            return movies
+
+    # Getting movie by id
+    def get_movie_by_id(self, movie_id):
+        with Session(self.engine) as session:
+            return session.query(Movie).filter_by(id=movie_id).first()
+
+    # Get user's ratings
+    def get_user_ratings(self, email):
+        with Session(self.engine) as session:
+            return session.query(Rate).filter_by(email=email).all()
+
+    # Getting user's rates
+    def get_user_rated_movies(self, email):
+        with Session(self.engine) as session:
+            result = (
+                session.query(Movie.name, Rate.rate).join(Rate, Movie.id == Rate.movie_id).filter(Rate.email == email).all()
+            )
+            return [{"name": name, "rating": rate} for name, rate in result]
+
+    # Searching movies by name
+    def search_movies_by_name(self, name, page, per_page):
+        with Session(self.engine) as session:
+            offset = (page - 1) * per_page  # skipping movies before current page
+            movies = session.query(Movie).filter(Movie.name.ilike(f"%{name}%")).offset(offset).limit(per_page).all()
+            return movies
+
+    # Adding new movies using the csv-file
+    # NOTE: there is no check for genre and description validity
+    def insert_movies_csv(self, csv_file_path):
+        import csv
+        from datetime import datetime
+        with open(csv_file_path, newline='', encoding='utf-8') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                title = row['title'].strip()
+                overview = row['overview'].strip()
+                genre = row['genres'].strip()
+                date_str = row['release_date'].strip()
+
+                # Trying to get the year
+                try:
+                    year = datetime.strptime(date_str, '%Y-%m-%d').year
+                except Exception as e:
+                    print(f'Error adding the "{title}": {e}')
+                    continue
+
+                # Inserting to the DB
+                self.add_movie(
+                    name=title,
+                    year=int(year),
+                    genre=genre,
+                    description=overview
+                )
+
+    # Adding new movies using the txt-file
+    def insert_movies_txt(self, filepath):
+        with open(filepath, encoding='utf-8') as f:
+            for line in f:
+                parts = line.strip().split(',', 3)  # split by first 3 commas (to 4 parts)
+                if len(parts) != 4:
+                    continue  # skipping if bad data
+
+                name, year, genre, description = parts
+                try:
+                    self.add_movie(
+                        name=name,
+                        year=int(year),
+                        genre=genre,
+                        description=description
+                    )
+                except Exception as e:
+                    print(f'Error adding the "{name}": {e}')
+

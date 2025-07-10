@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Profile</title>
+</head>
+<body>
+    <h1>Welcome, {{ email }}</h1>
+
+    <!-- Browse all movies -->
+    <form method="get" action="/movies">
+        <input type="hidden" name="email" value="{{ email }}">
+        <button type="submit">Browse all movies</button>
+    </form>
+
+    <!-- My rated movies -->
+    <h2>My rated movies</h2>
+    {% if rated_movies %}
+        <ul>
+            {% for movie in rated_movies %}
+                <li>{{ movie.name }} — {{ movie.rating }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>You haven't rated any movies yet.</p>
+    {% endif %}
+
+    <!-- Get recommendations -->
+    <h2>Get movie recommendations</h2>
+    <form method="post" action="/profile?email={{ email }}">
+        <input type="hidden" name="email" value="{{ email }}">
+        <button type="submit">Show Recommendations</button>
+    </form>
+
+    {% if recommendations %}
+        <h3>Recommended for you:</h3>
+        <ul>
+        {% for movie in recommendations %}
+            <li>{{ movie.name }}</li>
+        {% endfor %}
+        </ul>
+    {% elif rec_error %}
+        <p>{{ rec_error }}</p>
+    {% endif %}
+</body>
+</html>
